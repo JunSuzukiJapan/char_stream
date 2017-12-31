@@ -4,3 +4,6 @@ version = "0.1.0"
 authors = ["JunSuzukiJapan <jun.suzuki.japan@gmail.com>"]
 
 [dependencies]
+
+[dev-dependencies]
+tempfile = "2.2.0"

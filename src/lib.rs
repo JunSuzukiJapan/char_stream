@@ -1,7 +1,10 @@
 use std::str;
+use std::io::{BufReader, BufRead};
+use std::fs::File;
 
 pub enum CharStream {
     Chars { chars: InternalCharVec },
+    File { file: InternalFile },
 }
 
 impl CharStream {
@@ -27,11 +30,22 @@ impl CharStream {
         }
     }
 
+    pub fn from_file(path: &str) -> Result<CharStream, &'static str> {
+        if let Ok(f) = InternalFile::open(path) {
+            Ok(CharStream::File { file: f })
+        }else{
+            Err("can't open file.")
+        }
+    }
+
     pub fn next(&mut self) -> Option<char> {
         match self {
             &mut CharStream::Chars { ref mut chars } => {
                 chars.next()
-            }
+            },
+            &mut CharStream::File { ref mut file } => {
+                file.next()
+            },
         }
     }
 }
@@ -60,9 +74,56 @@ impl InternalCharVec {
     }
 }
 
+pub struct InternalFile {
+    reader: BufReader<File>,
+    buf: Option<InternalCharVec>,
+}
+
+impl InternalFile {
+    pub fn open(path: &str) -> Result<InternalFile, &'static str> {
+        if let Ok(f) = File::open(path) {
+            let reader = BufReader::new(f);
+            Ok(InternalFile {
+                reader: reader,
+                buf: None,
+            })
+        }else{
+            Err("can't open file.")
+        }
+    }
+
+    pub fn next(&mut self) -> Option<char> {
+        if let Some(ref mut char_vec) = self.buf {
+            char_vec.next()
+
+        }else{
+            loop {
+                let mut buffer = String::new();
+                if let Ok(_) = self.reader.read_line(&mut buffer) {
+                    if buffer.len() == 0 {
+                        continue;
+                    }
+                    let mut char_vec = InternalCharVec::new(buffer.chars().collect());
+                    let result = char_vec.next();
+                    self.buf = Some(char_vec);
+                    return result;
+
+                }else{
+                    return None;
+                }
+            }
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
+    extern crate tempfile;
+
     use super::*;
+    use std::io::prelude::*;
+    use std::io::{BufReader, Seek, SeekFrom};
+    use std::fs::File;
 
     #[test]
     fn from_str() {
@@ -114,5 +175,25 @@ mod tests {
         }else{
             panic!("can't convert stream from bytes.");
         }
+    }
+
+    #[test]
+    fn from_file() {
+        let test_data = "Hello 世界❤";
+
+        // write test data to tempfile
+        let mut tmpfile: File = tempfile::tempfile().unwrap();
+        tmpfile.write_all(test_data.as_bytes()).unwrap();
+
+        // Seek to start
+        tmpfile.seek(SeekFrom::Start(0)).unwrap();
+
+        // read test data from tempfile
+        let mut buf = String::new();
+        {
+            let mut reader = BufReader::new(tmpfile);
+            reader.read_line(&mut buf).unwrap();
+        }
+        assert_eq!(test_data, buf);
     }
 }
