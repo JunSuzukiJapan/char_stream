@@ -4,10 +4,7 @@
 // of the MIT license.  See the LICENSE file for details.
 //! # char_stream
 //!
-//! ## Examples
-//! ```rust
-//!
-//! ```
+//! CharStream 
 
 mod internals;
 
@@ -24,18 +21,78 @@ pub enum CharStream {
 }
 
 impl CharStream {
+
+    ///
+    /// make new CharStream from str.
+    ///
+    /// ```
+    /// use char_stream::CharStream;
+    ///
+    /// let mut stream = CharStream::from("Hello 世界❤");
+    ///
+    /// assert_eq!('H', stream.next().unwrap());
+    /// assert_eq!('e', stream.next().unwrap());
+    /// assert_eq!('l', stream.next().unwrap());
+    /// assert_eq!('l', stream.next().unwrap());
+    /// assert_eq!('o', stream.next().unwrap());
+    /// assert_eq!(' ', stream.next().unwrap());
+    /// assert_eq!('世', stream.next().unwrap());
+    /// assert_eq!('界', stream.next().unwrap());
+    /// assert_eq!('❤', stream.next().unwrap());
+    /// assert_eq!(None, stream.next());
+    /// ```
     pub fn from(s: &str) -> CharStream {
         CharStream::Chars {
             chars: InternalCharVec::new(s.chars().collect())
         }
     }
 
+    ///
+    /// make new CharStream from String.
+    ///
+    /// ```
+    /// use char_stream::CharStream;
+    ///
+    /// let s = String::from("Hello 世界❤");
+    /// let mut stream = CharStream::from_string(s);
+    ///
+    /// assert_eq!('H', stream.next().unwrap());
+    /// assert_eq!('e', stream.next().unwrap());
+    /// assert_eq!('l', stream.next().unwrap());
+    /// assert_eq!('l', stream.next().unwrap());
+    /// assert_eq!('o', stream.next().unwrap());
+    /// assert_eq!(' ', stream.next().unwrap());
+    /// assert_eq!('世', stream.next().unwrap());
+    /// assert_eq!('界', stream.next().unwrap());
+    /// assert_eq!('❤', stream.next().unwrap());
+    /// assert_eq!(None, stream.next());
+    /// ```
     pub fn from_string(s: String) -> CharStream {
         CharStream::Chars {
             chars: InternalCharVec::new(s.chars().collect()),
         }
     }
 
+    ///
+    /// make new CharStream from bytes.
+    ///
+    /// ```
+    /// use char_stream::CharStream;
+    ///
+    /// let bytes: [u8; 15] = [72, 101, 108, 108, 111, 32, 228, 184, 150, 231, 149, 140, 226, 157, 164];
+    /// if let Ok(mut stream) = CharStream::from_bytes(&bytes) {
+    ///     assert_eq!('H', stream.next().unwrap());
+    ///     assert_eq!('e', stream.next().unwrap());
+    ///     assert_eq!('l', stream.next().unwrap());
+    ///     assert_eq!('l', stream.next().unwrap());
+    ///     assert_eq!('o', stream.next().unwrap());
+    ///     assert_eq!(' ', stream.next().unwrap());
+    ///     assert_eq!('世', stream.next().unwrap());
+    ///     assert_eq!('界', stream.next().unwrap());
+    ///     assert_eq!('❤', stream.next().unwrap());
+    ///     assert_eq!(None, stream.next());
+    /// }
+    /// ```
     pub fn from_bytes(bytes: &[u8]) -> Result<CharStream, &str> {
         if let Ok(s) = str::from_utf8(bytes) {
             Ok(CharStream::Chars {
@@ -46,14 +103,67 @@ impl CharStream {
         }
     }
 
-    pub fn from_file(file: File) -> CharStream {
+    ///
+    /// make new CharStream from File.
+    ///
+    /// ```
+    /// extern crate tempfile;
+    /// extern crate char_stream;
+    ///
+    /// use std::io::prelude::*;
+    /// use std::io::{Seek, SeekFrom};
+    /// use std::fs::File;
+    /// use char_stream::CharStream;
+    ///
+    /// # fn main(){
+    /// let test_data = "Hello\n 世界❤";
+    ///
+    /// // write test data to tempfile
+    /// let mut tmpfile: File = tempfile::tempfile().unwrap();
+    /// tmpfile.write_all(test_data.as_bytes()).unwrap();
+    ///
+    /// // Seek to start
+    /// tmpfile.seek(SeekFrom::Start(0)).unwrap();
+    ///
+    /// // read test data from tempfile
+    /// let mut stream = CharStream::from_file(tmpfile);
+    ///
+    /// assert_eq!('H', stream.next().unwrap());
+    /// assert_eq!('e', stream.next().unwrap());
+    /// assert_eq!('l', stream.next().unwrap());
+    /// assert_eq!('l', stream.next().unwrap());
+    /// assert_eq!('o', stream.next().unwrap());
+    /// assert_eq!('\n', stream.next().unwrap());
+    /// assert_eq!(' ', stream.next().unwrap());
+    /// assert_eq!('世', stream.next().unwrap());
+    /// assert_eq!('界', stream.next().unwrap());
+    /// assert_eq!('❤', stream.next().unwrap());
+    /// assert_eq!(None, stream.next());
+    /// # }
+    /// ```
+     pub fn from_file(file: File) -> CharStream {
         CharStream::File {
             file: InternalFile::new(file)
         }
     }
 
-    pub fn from_stdin(stdin: io::Stdin) -> CharStream {
-        let internal = InternalStdin::new(stdin);
+    ///
+    /// make new CharStream from stdin.
+    ///
+    /// ```no_run
+    /// extern crate char_stream;
+    ///
+    /// use char_stream::CharStream;
+    ///
+    /// fn main() {
+    ///     let mut stream = CharStream::from_stdin();
+    ///     while let Some(ch) = stream.next() {
+    ///         println!("ch: {}", ch);
+    ///     }
+    /// }
+    /// ```
+    pub fn from_stdin() -> CharStream {
+        let internal = InternalStdin::new(io::stdin());
         CharStream::StdIn {
             stdin: internal
         }
