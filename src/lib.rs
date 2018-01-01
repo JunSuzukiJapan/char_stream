@@ -30,11 +30,9 @@ impl CharStream {
         }
     }
 
-    pub fn from_file(path: &str) -> Result<CharStream, &'static str> {
-        if let Ok(f) = InternalFile::open(path) {
-            Ok(CharStream::File { file: f })
-        }else{
-            Err("can't open file.")
+    pub fn from_file(file: File) -> CharStream {
+        CharStream::File {
+            file: InternalFile::new(file)
         }
     }
 
@@ -72,46 +70,88 @@ impl InternalCharVec {
         self.index += 1;
         result
     }
+
+    pub fn peek(&mut self) -> Option<char> {
+        if self.index >= self.chars.len() {
+            return None;
+        }
+
+        let result = Some(self.chars[self.index]);
+        result
+    }
 }
 
 pub struct InternalFile {
     reader: BufReader<File>,
     buf: Option<InternalCharVec>,
+    is_eof: bool,
 }
 
 impl InternalFile {
     pub fn open(path: &str) -> Result<InternalFile, &'static str> {
-        if let Ok(f) = File::open(path) {
-            let reader = BufReader::new(f);
-            Ok(InternalFile {
+        if let Ok(file) = File::open(path) {
+            let reader = BufReader::new(file);
+            let mut f = InternalFile {
                 reader: reader,
                 buf: None,
-            })
+                is_eof: false,
+            };
+            f.read_next_line();
+
+            Ok(f)
         }else{
             Err("can't open file.")
         }
     }
 
+    pub fn new(file: File) -> InternalFile {
+        let reader = BufReader::new(file);
+        let mut f = InternalFile {
+            reader: reader,
+            buf: None,
+            is_eof: false,
+        };
+        f.read_next_line();
+
+        f
+    }
+
     pub fn next(&mut self) -> Option<char> {
+        if self.is_eof {
+            return None;
+        }
+
+        let mut result = None;
         if let Some(ref mut char_vec) = self.buf {
-            char_vec.next()
+            result = char_vec.next();
+        }
+        self.check_next_char_and_reset_buf_if_need();
 
-        }else{
-            loop {
-                let mut buffer = String::new();
-                if let Ok(_) = self.reader.read_line(&mut buffer) {
-                    if buffer.len() == 0 {
-                        continue;
-                    }
-                    let mut char_vec = InternalCharVec::new(buffer.chars().collect());
-                    let result = char_vec.next();
-                    self.buf = Some(char_vec);
-                    return result;
+        result
+    }
 
-                }else{
-                    return None;
-                }
+    fn check_next_char_and_reset_buf_if_need(&mut self){
+        // 次に読める文字がない場合、次の行を先読みする。
+        let mut need_read = false;
+        if let Some(ref mut char_vec) = self.buf {
+            if let None = char_vec.peek() {
+                need_read = true;
             }
+        }else{
+            need_read = true;
+        }
+        if need_read {
+            self.read_next_line();
+        }
+    }
+
+    fn read_next_line(&mut self){
+        let mut buffer = String::new();
+        if let Ok(_) = self.reader.read_line(&mut buffer) {
+            let char_vec = InternalCharVec::new(buffer.chars().collect());
+            self.buf = Some(char_vec);
+        }else{
+            self.is_eof = true;
         }
     }
 }
@@ -122,7 +162,7 @@ mod tests {
 
     use super::*;
     use std::io::prelude::*;
-    use std::io::{BufReader, Seek, SeekFrom};
+    use std::io::{Seek, SeekFrom};
     use std::fs::File;
 
     #[test]
@@ -179,7 +219,7 @@ mod tests {
 
     #[test]
     fn from_file() {
-        let test_data = "Hello 世界❤";
+        let test_data = "Hello\n 世界❤";
 
         // write test data to tempfile
         let mut tmpfile: File = tempfile::tempfile().unwrap();
@@ -189,11 +229,17 @@ mod tests {
         tmpfile.seek(SeekFrom::Start(0)).unwrap();
 
         // read test data from tempfile
-        let mut buf = String::new();
-        {
-            let mut reader = BufReader::new(tmpfile);
-            reader.read_line(&mut buf).unwrap();
-        }
-        assert_eq!(test_data, buf);
+        let mut stream = CharStream::from_file(tmpfile);
+        assert_eq!('H', stream.next().unwrap());
+        assert_eq!('e', stream.next().unwrap());
+        assert_eq!('l', stream.next().unwrap());
+        assert_eq!('l', stream.next().unwrap());
+        assert_eq!('o', stream.next().unwrap());
+        assert_eq!('\n', stream.next().unwrap());
+        assert_eq!(' ', stream.next().unwrap());
+        assert_eq!('世', stream.next().unwrap());
+        assert_eq!('界', stream.next().unwrap());
+        assert_eq!('❤', stream.next().unwrap());
+        assert_eq!(None, stream.next());
     }
 }
