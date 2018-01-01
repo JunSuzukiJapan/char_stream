@@ -25,6 +25,7 @@ impl CharStream {
     ///
     /// make new CharStream from str.
     ///
+    /// Example:
     /// ```
     /// use char_stream::CharStream;
     ///
@@ -50,6 +51,7 @@ impl CharStream {
     ///
     /// make new CharStream from String.
     ///
+    /// Example:
     /// ```
     /// use char_stream::CharStream;
     ///
@@ -76,6 +78,7 @@ impl CharStream {
     ///
     /// make new CharStream from bytes.
     ///
+    /// Example:
     /// ```
     /// use char_stream::CharStream;
     ///
@@ -106,6 +109,7 @@ impl CharStream {
     ///
     /// make new CharStream from File.
     ///
+    /// Example:
     /// ```
     /// extern crate tempfile;
     /// extern crate char_stream;
@@ -150,6 +154,7 @@ impl CharStream {
     ///
     /// make new CharStream from stdin.
     ///
+    /// Example:
     /// ```no_run
     /// extern crate char_stream;
     ///
