@@ -11,7 +11,7 @@ In Cargo.toml:
 char_stream = "*"
 ```
 
-# Example
+# Examples
 
 ## for str
 
