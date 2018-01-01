@@ -1,6 +1,10 @@
+mod internals;
+
 use std::str;
 use std::io::{BufReader, BufRead};
 use std::fs::File;
+use std::iter::Iterator;
+use internals::InternalCharVec;
 
 pub enum CharStream {
     Chars { chars: InternalCharVec },
@@ -35,8 +39,12 @@ impl CharStream {
             file: InternalFile::new(file)
         }
     }
+}
 
-    pub fn next(&mut self) -> Option<char> {
+impl Iterator for CharStream {
+    type Item = char;
+
+    fn next(&mut self) -> Option<char> {
         match self {
             &mut CharStream::Chars { ref mut chars } => {
                 chars.next()
@@ -48,38 +56,6 @@ impl CharStream {
     }
 }
 
-pub struct InternalCharVec {
-    chars: Vec<char>,
-    index: usize,
-}
-
-impl InternalCharVec {
-    pub fn new(chars: Vec<char>) -> InternalCharVec {
-        InternalCharVec {
-            chars: chars,
-            index: 0,
-        }
-    }
-
-    pub fn next(&mut self) -> Option<char> {
-        if self.index >= self.chars.len() {
-            return None;
-        }
-
-        let result = Some(self.chars[self.index]);
-        self.index += 1;
-        result
-    }
-
-    pub fn peek(&mut self) -> Option<char> {
-        if self.index >= self.chars.len() {
-            return None;
-        }
-
-        let result = Some(self.chars[self.index]);
-        result
-    }
-}
 
 pub struct InternalFile {
     reader: BufReader<File>,
