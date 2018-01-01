@@ -2,12 +2,14 @@ mod internals;
 
 use std::str;
 use std::fs::File;
+use std::io;
 use std::iter::Iterator;
-use internals::{InternalCharVec, InternalFile};
+use internals::{InternalCharVec, InternalFile, InternalStdin};
 
 pub enum CharStream {
     Chars { chars: InternalCharVec },
     File { file: InternalFile },
+    StdIn { stdin: InternalStdin },
 }
 
 impl CharStream {
@@ -38,6 +40,13 @@ impl CharStream {
             file: InternalFile::new(file)
         }
     }
+
+    pub fn from_stdin(stdin: io::Stdin) -> CharStream {
+        let internal = InternalStdin::new(stdin);
+        CharStream::StdIn {
+            stdin: internal
+        }
+    }
 }
 
 impl Iterator for CharStream {
@@ -50,6 +59,9 @@ impl Iterator for CharStream {
             },
             &mut CharStream::File { ref mut file } => {
                 file.next()
+            },
+            &mut CharStream::StdIn { ref mut stdin } => {
+                stdin.next()
             },
         }
     }
