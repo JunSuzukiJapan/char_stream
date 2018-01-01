@@ -2,6 +2,11 @@
 name = "char_stream"
 version = "0.1.0"
 authors = ["JunSuzukiJapan <jun.suzuki.japan@gmail.com>"]
+repository = "https://github.com/JunSuzukiJapan/char_stream"
+keywords = ["util", "char", "stream"]
+license-file = "LICENSE"
+readme = "README.md"
+description = "Unified character reading interface to str, String, bytes, File and Stdin for Rust language."
 
 [dependencies]
 
