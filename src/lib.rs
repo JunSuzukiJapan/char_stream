@@ -4,8 +4,8 @@
 // of the MIT license.  See the LICENSE file for details.
 //! # char_stream
 //!
-//! CharStream 
-
+//! char_stream gives a unified character reading interface to str, String, bytes, File and Stdin.
+//!
 mod internals;
 
 use std::str;
