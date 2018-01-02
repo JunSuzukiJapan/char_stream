@@ -1,3 +1,4 @@
+use std::io::Read;
 use std::io::{BufReader, BufRead};
 use std::fs::File;
 use internals::InternalCharVec;
@@ -75,5 +76,21 @@ impl InternalFile {
         }else{
             self.is_eof = true;
         }
+    }
+
+    pub fn read_and_get_all_chars(mut self) -> Vec<char> {
+        self.is_eof = true;
+        let mut buffer = String::new();
+        if let Some(mut char_vec) = self.buf {
+            while let Some(c) = char_vec.next() {
+                buffer.push(c);
+            }
+        }
+        while let Ok(size) = self.reader.read_to_string(&mut buffer) {
+            if size == 0 {
+                break;
+            }
+        }
+        buffer.chars().collect()
     }
 }

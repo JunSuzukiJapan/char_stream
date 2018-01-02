@@ -46,6 +46,7 @@ impl CharStream {
     /// assert_eq!('❤', stream.next().unwrap());
     /// assert_eq!(None, stream.next());
     /// ```
+    ///
     pub fn from(s: &str) -> CharStream {
         CharStream::Chars {
             chars: InternalCharVec::new(s.chars().collect())
@@ -74,6 +75,7 @@ impl CharStream {
     /// assert_eq!('❤', stream.next().unwrap());
     /// assert_eq!(None, stream.next());
     /// ```
+    ///
     pub fn from_string(s: String) -> CharStream {
         CharStream::Chars {
             chars: InternalCharVec::new(s.chars().collect()),
@@ -102,6 +104,7 @@ impl CharStream {
     ///     assert_eq!(None, stream.next());
     /// }
     /// ```
+    ///
     pub fn from_bytes(bytes: &[u8]) -> Result<CharStream, &str> {
         if let Ok(s) = str::from_utf8(bytes) {
             Ok(CharStream::Chars {
@@ -152,6 +155,7 @@ impl CharStream {
     /// assert_eq!(None, stream.next());
     /// # }
     /// ```
+    ///
      pub fn from_file(file: File) -> CharStream {
         CharStream::File {
             file: InternalFile::new(file)
@@ -175,6 +179,7 @@ impl CharStream {
     ///     }
     /// }
     /// ```
+    ///
     pub fn from_stdin() -> CharStream {
         let internal = InternalStdin::new(io::stdin());
         CharStream::StdIn {
@@ -195,6 +200,7 @@ impl CharStream {
     ///
     /// asserq_eq!("Hello 世界❤", result);
     /// ```
+    ///
     pub fn to_string(&mut self) -> String {
         let mut string = String::new();
 
@@ -207,7 +213,7 @@ impl CharStream {
 
     ///
     /// Convert to DoubleEndedIterator.
-    ///  only made by from_str or from_string.
+    ///  caution: CharStream made by 'from_stdin' can't convert.
     ///
     /// Example:
     /// ```
@@ -226,10 +232,16 @@ impl CharStream {
     ///     println!("'{}' reverse to '{}'", input , result);
     /// }
     ///```
+    ///
     pub fn wend_iter(self) -> WendIterator {
         match self {
             CharStream::Chars { chars } => WendIterator::from_chars(chars),
-            _ => panic!("can't convert DoubleEndedIterator from {:?}", self),
+            CharStream::File { file } => {
+                let chars = file.read_and_get_all_chars();
+                let char_vec = InternalCharVec::new(chars);
+                WendIterator::from_chars(char_vec)
+            },
+            CharStream::StdIn { .. } => panic!("can't convert DoubleEndedIterator from CharStream made by 'from_stdin'"),
         }
     }
 }
@@ -336,6 +348,34 @@ mod tests {
         assert_eq!('世', stream.next().unwrap());
         assert_eq!('界', stream.next().unwrap());
         assert_eq!('❤', stream.next().unwrap());
+        assert_eq!(None, stream.next());
+    }
+
+    #[test]
+    fn from_file_wend_iter() {
+        let test_data = "Hello\n 世界❤";
+
+        // write test data to tempfile
+        let mut tmpfile: File = tempfile::tempfile().unwrap();
+        tmpfile.write_all(test_data.as_bytes()).unwrap();
+
+        // Seek to start
+        tmpfile.seek(SeekFrom::Start(0)).unwrap();
+
+        // read test data from tempfile
+        let file_stream = CharStream::from_file(tmpfile);
+        let mut stream = file_stream.wend_iter().rev();
+
+        assert_eq!('❤', stream.next().unwrap());
+        assert_eq!('界', stream.next().unwrap());
+        assert_eq!('世', stream.next().unwrap());
+        assert_eq!(' ', stream.next().unwrap());
+        assert_eq!('\n', stream.next().unwrap());
+        assert_eq!('o', stream.next().unwrap());
+        assert_eq!('l', stream.next().unwrap());
+        assert_eq!('l', stream.next().unwrap());
+        assert_eq!('e', stream.next().unwrap());
+        assert_eq!('H', stream.next().unwrap());
         assert_eq!(None, stream.next());
     }
 }
