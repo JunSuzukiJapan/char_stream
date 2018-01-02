@@ -7,13 +7,16 @@
 //! char_stream gives a unified character reading interface to str, String, bytes, File and Stdin.
 //!
 mod internals;
+mod wend_iter;
 
 use std::str;
 use std::fs::File;
 use std::io;
 use std::iter::Iterator;
 use internals::{InternalCharVec, InternalFile, InternalStdin};
+use wend_iter::WendIterator;
 
+#[derive(Debug)]
 pub enum CharStream {
     Chars { chars: InternalCharVec },
     File { file: InternalFile },
@@ -173,6 +176,36 @@ impl CharStream {
             stdin: internal
         }
     }
+
+    ///
+    /// to string
+    ///
+    /// Example:
+    /// ```
+    /// use char_stream::CharStream;
+    /// 
+    /// let s = String::from("Hello 世界❤");
+    /// let mut stream = CharStream::from_string(s);
+    /// let result = stream.to_string();
+    ///
+    /// asserq_eq!("Hello 世界❤", result);
+    /// ```
+    pub fn to_string(&mut self) -> String {
+        let mut string = String::new();
+
+        while let Some(c) = self.next() {
+            string.push(c);
+        }
+
+        string
+    }
+
+    pub fn wend_iter(self) -> WendIterator {
+        match self {
+            CharStream::Chars { chars } => WendIterator::from_chars(chars),
+            _ => panic!("can't convert DoubleEndedIterator from {:?}", self),
+        }
+    }
 }
 
 impl Iterator for CharStream {
@@ -192,7 +225,6 @@ impl Iterator for CharStream {
         }
     }
 }
-
 
 #[cfg(test)]
 mod tests {

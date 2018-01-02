@@ -2,6 +2,7 @@ use std::io::{BufReader, BufRead};
 use std::fs::File;
 use internals::InternalCharVec;
 
+#[derive(Debug)]
 pub struct InternalFile {
     reader: BufReader<File>,
     buf: Option<InternalCharVec>,

@@ -1,6 +1,7 @@
 use std::io::Stdin;
 use internals::InternalCharVec;
 
+#[derive(Debug)]
 pub struct InternalStdin {
     stdin: Stdin,
     buf: Option<InternalCharVec>,
