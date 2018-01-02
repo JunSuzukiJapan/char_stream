@@ -15,7 +15,7 @@ char_stream = "*"
 
 ## for str
 
-```
+```rust
 use char_stream::CharStream;
 
 let mut stream = CharStream::from("Hello 世界❤");
@@ -34,7 +34,7 @@ assert_eq!(None, stream.next());
 
 ## for String
 
-```
+```rust
 use char_stream::CharStream;
 
 let s = String::from("Hello 世界❤");
@@ -54,7 +54,7 @@ assert_eq!(None, stream.next());
 
 ## for bytes
 
-```
+```rust
 use char_stream::CharStream;
 
 let bytes: [u8; 15] = [72, 101, 108, 108, 111, 32, 228, 184, 150, 231, 149, 140, 226, 157, 164];
@@ -74,7 +74,7 @@ if let Ok(mut stream) = CharStream::from_bytes(&bytes) {
 
 ## for File
 
-```
+```rust
 extern crate tempfile;
 extern crate char_stream;
 
@@ -112,7 +112,7 @@ fn main(){
 
 ## for Stdin
 
-```
+```rust
 extern crate char_stream;
 
 use char_stream::CharStream;
@@ -125,3 +125,18 @@ fn main() {
 }
 ```
 
+
+## reverse str
+
+```rust
+extern crate char_stream;
+use char_stream::CharStream;
+
+fn main() {
+    let input = "stressed";
+    let stream = CharStream::from(input);
+    let rev_stream = stream.wend_iter().rev();
+    let result: String = rev_stream.collect();
+    println!("'{}' reverse to '{}'", input , result);
+}
+```
