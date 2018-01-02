@@ -191,6 +191,7 @@ impl CharStream {
     /// to string
     ///
     /// Example:
+    /// 
     /// ```
     /// use char_stream::CharStream;
     /// 
@@ -198,7 +199,7 @@ impl CharStream {
     /// let mut stream = CharStream::from_string(s);
     /// let result = stream.to_string();
     ///
-    /// asserq_eq!("Hello 世界❤", result);
+    /// assert_eq!("Hello 世界❤", result);
     /// ```
     ///
     pub fn to_string(&mut self) -> String {
@@ -216,6 +217,7 @@ impl CharStream {
     ///  caution: CharStream made by 'from_stdin' can't convert.
     ///
     /// Example:
+    ///
     /// ```
     /// extern crate char_stream;
     ///
@@ -231,7 +233,7 @@ impl CharStream {
     ///     }
     ///     println!("'{}' reverse to '{}'", input , result);
     /// }
-    ///```
+    /// ```
     ///
     pub fn wend_iter(self) -> WendIterator {
         match self {
