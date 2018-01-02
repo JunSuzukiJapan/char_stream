@@ -9,11 +9,8 @@ fn test_rev() {
     // 文字列"stressed"の文字を逆に（末尾から先頭に向かって）並べた文字列を得よ．
     let input = "stressed";
     let stream = CharStream::from(input);
-    let mut rev_stream = stream.wend_iter().rev();
-    let mut result = String::new();
-    while let Some(c) = rev_stream.next() {
-        result.push(c);
-    }
+    let rev_stream = stream.wend_iter().rev();
+    let result: String = rev_stream.collect();
     assert_eq!("desserts", result);
 }
 
