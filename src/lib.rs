@@ -201,7 +201,8 @@ impl CharStream {
     }
 
     ///
-    /// Convert to DoubleEndedIterator
+    /// Convert to DoubleEndedIterator.
+    ///  only made by from_str or from_string.
     ///
     /// Example:
     /// ```
