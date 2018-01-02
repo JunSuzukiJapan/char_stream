@@ -200,6 +200,26 @@ impl CharStream {
         string
     }
 
+    ///
+    /// Convert to DoubleEndedIterator
+    ///
+    /// Example:
+    /// ```
+    /// extern crate char_stream;
+    ///
+    /// use char_stream::CharStream;
+    ///
+    /// fn main() {
+    ///     let input = "stressed";
+    ///     let stream = CharStream::from(input);
+    ///     let mut rev_stream = stream.wend_iter().rev();
+    ///     let mut result = String::new();
+    ///     while let Some(c) = rev_stream.next() {
+    ///         result.push(c);
+    ///     }
+    ///     println!("'{}' reverse to '{}'", input , result);
+    /// }
+    ///```
     pub fn wend_iter(self) -> WendIterator {
         match self {
             CharStream::Chars { chars } => WendIterator::from_chars(chars),
