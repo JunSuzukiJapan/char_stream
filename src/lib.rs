@@ -188,6 +188,70 @@ impl CharStream {
     }
 
     ///
+    /// peek a next char
+    ///
+    pub fn peek(&mut self) -> Option<char> {
+        match self {
+            &mut CharStream::Chars { ref mut chars } => {
+                chars.peek()
+            },
+            &mut CharStream::File { ref mut file } => {
+                file.peek()
+            },
+            &mut CharStream::StdIn { ref mut stdin } => {
+                stdin.peek()
+            },
+        }
+    }
+
+    ///
+    /// read a line
+    ///
+    /// Example:
+    ///
+    /// ```
+    /// extern crate char_stream;
+    ///
+    /// use char_stream::CharStream;
+    ///
+    /// fn main(){
+    ///     let test_data = "Hello\n 世界❤";
+    ///     let mut stream = CharStream::from(test_data);
+    ///     assert_eq!("Hello", stream.read_line().unwrap());
+    ///     assert_eq!(" 世界❤", stream.read_line().unwrap());
+    ///     assert_eq!(None, stream.next());
+    /// }
+    /// ```
+    ///
+    pub fn read_line(&mut self) -> Option<String> {
+        if let None = self.peek() {
+            return None;
+        }
+
+        let mut result = String::new();
+
+        while let Some(c) = self.next() {
+            if c == '\n' {
+                break;
+
+            } else if c == '\r' {
+                if let Some(c2) = self.peek() {
+                    if c2 == '\n' {
+                        self.next();
+                        break;
+                    }
+                }else{
+                    break;
+                }
+            }
+
+            result.push(c);
+        }
+
+        Some(result)
+    }
+
+    ///
     /// to string
     ///
     /// Example:
@@ -378,6 +442,33 @@ mod tests {
         assert_eq!('l', stream.next().unwrap());
         assert_eq!('e', stream.next().unwrap());
         assert_eq!('H', stream.next().unwrap());
+        assert_eq!(None, stream.next());
+    }
+
+    #[test]
+    fn read_line() {
+        let test_data = "Hello\n 世界❤";
+        let mut stream = CharStream::from(test_data);
+        assert_eq!("Hello", stream.read_line().unwrap());
+        assert_eq!(" 世界❤", stream.read_line().unwrap());
+        assert_eq!(None, stream.next());
+    }
+
+    #[test]
+    fn from_file_read_line() {
+        let test_data = "Hello\n 世界❤";
+
+        // write test data to tempfile
+        let mut tmpfile: File = tempfile::tempfile().unwrap();
+        tmpfile.write_all(test_data.as_bytes()).unwrap();
+
+        // Seek to start
+        tmpfile.seek(SeekFrom::Start(0)).unwrap();
+
+        // read test data from tempfile
+        let mut stream = CharStream::from_file(tmpfile);
+        assert_eq!("Hello", stream.read_line().unwrap());
+        assert_eq!(" 世界❤", stream.read_line().unwrap());
         assert_eq!(None, stream.next());
     }
 }

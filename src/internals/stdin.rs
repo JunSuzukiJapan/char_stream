@@ -39,7 +39,24 @@ impl InternalStdin {
         }else{
             None
         }
+    }
 
+    pub fn peek(&mut self) -> Option<char> {
+        if self.is_eof {
+            return None;
+        }
+
+        if self.need_read {
+            self.need_read = false;
+            self.read_line();
+        }
+
+        if let Some(ref mut char_vec) = self.buf {
+            char_vec.peek()
+
+        }else{
+            None
+        }
     }
 
     fn read_line(&mut self){

@@ -53,6 +53,19 @@ impl InternalFile {
         result
     }
 
+    pub fn peek(&mut self) -> Option<char> {
+        if self.is_eof {
+            return None;
+        }
+
+        let mut result = None;
+        if let Some(ref mut char_vec) = self.buf {
+            result = char_vec.peek();
+        }
+
+        result
+    }
+
     fn check_next_char_and_reset_buf_if_need(&mut self){
         // 次に読める文字がない場合、次の行を先読みする。
         let mut need_read = false;
