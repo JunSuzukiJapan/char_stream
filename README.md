@@ -1,5 +1,7 @@
 # char_stream
 
+[![Build Status](https://travis-ci.org/JunSuzukiJapan/char_stream.svg?branch=master)](https://travis-ci.org/JunSuzukiJapan/char_stream)s
+
 Unified character reading interface to str, String, bytes, File and Stdin for Rust language.
 
 # Installation
